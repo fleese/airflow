@@ -2,15 +2,6 @@ Airflow 是一个程序化编写、调度和监控工作流的平台。
 用airflow去编写DAGs(有向无环图)的工作流。airflow用一组woker按照制定的依赖关系去执行你的任务。丰富的命令行工具使操作负责的DAGs变得容易。
 丰富的用户接口使您可以轻松地可视化生产中运行的管道，监控任务的进度以及在需要时去解决问题。用code定义工作流时，它将变得更易于维护、迭代，测试和协作。
 
-Dynamic: Airflow pipelines are configuration as code (Python), allowing for dynamic pipeline generation. This allows for writing code that instantiates pipelines dynamically.
-
-Extensible: Easily define your own operators, executors and extend the library so that it fits the level of abstraction that suits your environment.
-
-Elegant: Airflow pipelines are lean and explicit. Parameterizing your scripts is built into the core of Airflow using the powerful Jinja templating engine.
-
-Scalable: Airflow has a modular architecture and uses a message queue to orchestrate an arbitrary number of workers. Airflow is ready to scale to infinity.
-
-
 设计原则
 动态：Airflow的pipeline配置为代码（Python），允许动态生成管道。这意味着我们可以编写代码去动态的实例化pipeline。
 可扩展：方便的定义自己的operator、executor和适合自身环境的library。
