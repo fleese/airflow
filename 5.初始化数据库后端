@@ -1,0 +1,21 @@
+如果你想真正体验Airflow，您应该考虑设置一个真正的数据库后端并切换到LocalExecutor。
+
+由于airflow使用SqlAlchemy库进行元数据的交互，所以你需要使用支持SqlAlchemy库的数据库后端去存储airflow的元数据。我们推荐MySQL或Postgres。
+
+注意：
+使用MySQL时，我们依赖更严格的SQL设置来获得合理的默认值。请确保 在[mysqld]下的my.cnf中指定了explicit_defaults_for_timestamp = 1
+
+注意：
+如果您决定使用Postgres，我们建议您使用psycopg2 驱动程序并在SqlAlchemy连接字符串中指定它。
+另请注意，由于SqlAlchemy没有公开在Postgres连接URI中定位特定模式的方法，
+因此您可能希望使用类似于命令的命令为您的角色设置默认模式。ALTER ROLE username SET search_path = airflow, foobar;
+
+一旦你设置好了支撑airflow的数据库后，你就需要去修改$AIRFLOW_HOME/airflow.cfg文件中的连接字符串。
+你也应该修改“executor”设置为能本地并行化任务实例的“LocalExecutor”。
+
+# initialize the database
+#初始化数据库
+airflow initdb
+
+
+
