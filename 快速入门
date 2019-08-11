@@ -30,4 +30,14 @@ airflow scheduler
 文件或者通过web UI上的Admin->Configuration菜单来查看默认的参数配置。如果服务是Linux的systmd启动的话，那么这个webserver的PID文件将放置在
 $AIRFLOW_HOME/airflow-webserver.pid 或 /run/airflow/webserver.pid目录中。
 
-开箱即用的airflow使用了sqlite数据库，由于使用该数据库无法并行化，所以它很快就不能满足你的需求。
+开箱即用的airflow使用了sqlite数据库，由于使用该数据库后无法并行化，所以它很快就不能满足你的需求。该状态下的airflow使用
+顺序执行任务实例的airflow.executors.sequential_executor.SequentialExecutor。尽管有很多限制，但是它可以让你快速运行airflow并熟悉UI和命令工具。
+
+以下是一些将触发一些任务实例的命令。当运行下述命令时，你在example1的DAG中能看到job的状态改变。
+
+# run your first task instance
+#运行你的第一个实例
+airflow run example_bash_operator runme_0 2015-01-01
+# run a backfill over 2 days
+# 多个日期的追数任务
+airflow backfill example_bash_operator -s 2015-01-01 -e 2015-01-02
