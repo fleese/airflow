@@ -101,6 +101,209 @@ default_args = {
 另外，请注意，您可以轻松定义可用于不同目的的不同参数集。比如在生产和开发环境之间进行不同的设置。
 
 初始化DAG
+我们需要一个DAG对象来嵌入我们的任务。这里我们传递一个指定的字符串‘tutorial’作为dag_id，它作为DAG的唯一标识符。我们还传递我们刚刚定义的默认参数字典，并设置DAG的参数
+schedule_interval为1天
+
+dag = DAG(
+    'tutorial', default_args=default_args, schedule_interval=timedelta(days=1))
+
+任务
+在实例化operator对象时生成任务。使用构造函数来初始化operator对象。第一个参数 task_id充当任务的唯一标识符。
+
+t1 = BashOperator(
+    task_id='print_date',
+    bash_command='date',
+    dag=dag)
+
+t2 = BashOperator(
+    task_id='sleep',
+    bash_command='sleep 5',
+    retries=3,
+    dag=dag)
+
+注意观察我们是如何混合传递一个operator的特定参数（bash_command）和一个继承自BaseOperator的参数（retries）给构造器的。使用继承参数不必为每个
+构造函数传递该参数。另外，请注意在第二个任务中我们用retries参数覆盖参数3。
+
+任务参数的优先规则如下：
+1.明确传递的参数
+2.default_args字典中存在的值
+3.operator的默认值（如果存在）
+
+任务必须包括或继承参数task_id和owner，否则airflow将引发异常。
+
+使用Jinja模版
+Airflow利用Jinja Templating的强大功能， 为管道作者提供一组内置参数和宏。Airflow还为管道作者提供了定义自己的参数，宏和模板的钩子。
+
+本节只是让你了解airflow使用Jinja templating的一些皮毛，使你熟悉双花括号，演示常见的模板变量{{ ds }} （今天的日期戳表示)。
+
+templated_command = """
+    {% for i in range(5) %}
+        echo "{{ ds }}"
+        echo "{{ macros.ds_add(ds, 7) }}"
+        echo "{{ params.my_param }}"
+    {% endfor %}
+"""
+
+t3 = BashOperator(
+    task_id='templated',
+    bash_command=templated_command,
+    params={'my_param': 'Parameter I passed in'},
+    dag=dag)
+
+注意上述templated_command包含代码逻辑在{% %}之间，这些逻辑包括引用{{ ds }}参数，调用{{ macros.ds_add(ds, 7)}} 函数，
+引用用户自定义函数{{ params.my_param }}。
+
+BaseOperator的参数params允许你传递包含多个参数和/或对象的字典给你的模版，请花时间去了解参数my_param是如何传递给模版的。
+
+文件也可以传递给bash_command参数，例如 bash_command='templated_command.sh',这里的templated_command.sh文件和管道文件在同一目录下（
+本例的管道文件就是tutorial.py）。这可能是出于许多原因，例如分离脚本的逻辑和管道代码，允许在用不同语言编写的文件中正确的代码突出显示，
+以及构造管道的一般灵活性。也可以自定义template_searchpath参数，使DAG构造器去搜索该目录下的脚本。
+
+在同一DAG构造函数调用中，通过user_defined_macros去指定自己的参数，比如为user_defined_macros设置值dict(foo='bar')，
+我们就可以在模版中使用{{ foo }}。此外，指定user_defined_filters将允许您注册自己的过滤器。例如，转递dict(hello=lambda name: 'Hello %s' % name)
+给user_defined_filters，我们就可以在模版中使用{{ 'world' | hello }}。
+
+有关可在模板中引用的变量和宏的更多信息，请务必阅读宏参考
+
+设置依赖关系
+我们有任务t1，t2和t3不相互依赖。以下是一些可以定义它们之间依赖关系的方法：
+
+t1.set_downstream(t2)
+
+# This means that t2 will depend on t1
+# running successfully to run.
+# It is equivalent to:
+# 这表示t2依赖t1的成功运行，它等价于：
+t2.set_upstream(t1)
+
+# The bit shift operator can also be
+# used to chain operations:
+# 移位操作符也可以用于表示链式操作
+t1 >> t2
+
+# And the upstream dependency with the
+# bit shift operator:
+# 向上依赖（t2依赖t1）也可以用移位操作符：
+t2 << t1
+
+# Chaining multiple dependencies becomes
+# concise with the bit shift operator:
+# 使用移位操作符使多个任务之间的依赖变得简单
+t1 >> t2 >> t3
+
+# A list of tasks can also be set as
+# dependencies. These operations
+# all have the same effect:
+# 一个任务列表也能被设置为依赖。移位操作符有相同的效果：
+t1.set_downstream([t2, t3])
+t1 >> [t2, t3]
+[t2, t3] << t1
+
+注意，如果airflow检测到一个循环依赖或者一个依赖被多次引用将抛出一个一场。
+
+回顾
+好吧，所以我们有一个非常基本的DAG。此时，您的代码应如下所示：
+
+"""
+Code that goes along with the Airflow tutorial located at:
+https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
+"""
+from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
+from datetime import datetime, timedelta
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2015, 6, 1),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+    # 'queue': 'bash_queue',
+    # 'pool': 'backfill',
+    # 'priority_weight': 10,
+    # 'end_date': datetime(2016, 1, 1),
+}
+
+dag = DAG(
+    'tutorial', default_args=default_args, schedule_interval=timedelta(days=1))
+
+# t1, t2 and t3 are examples of tasks created by instantiating operators
+t1 = BashOperator(
+    task_id='print_date',
+    bash_command='date',
+    dag=dag)
+
+t2 = BashOperator(
+    task_id='sleep',
+    bash_command='sleep 5',
+    retries=3,
+    dag=dag)
+
+templated_command = """
+    {% for i in range(5) %}
+        echo "{{ ds }}"
+        echo "{{ macros.ds_add(ds, 7)}}"
+        echo "{{ params.my_param }}"
+    {% endfor %}
+"""
+
+t3 = BashOperator(
+    task_id='templated',
+    bash_command=templated_command,
+    params={'my_param': 'Parameter I passed in'},
+    dag=dag)
+
+t2.set_upstream(t1)
+t3.set_upstream(t1)
+
+测试
+运行脚本
+是时候进行一些测试了。首先，让我们确保成功解析管道。
+假设我们保存上面的代码在DAGs目录（该目录由airflow.cfg指定）下的tutorial.py文件中。DAGs目录的默认为~/airflow/dags.
+
+python ~/airflow/dags/tutorial.py
+
+如果执行上面的命令没有抛出异常，说明代码中没有严重的错误，并且你的airflow环境是比较正常的。
+
+命令行元数据验证
+让我们运行一些命令来进一步验证这个脚本。
+
+# print the list of active DAGs
+# 打印这活动的DAGs列表
+airflow list_dags
+
+# prints the list of tasks the "tutorial" dag_id
+# 打印“tutorial” DAG的任务列表
+airflow list_tasks tutorial
+
+# prints the hierarchy of tasks in the tutorial DAG
+# 按照层次结构打印“tutorial” DAG的任务列表
+airflow list_tasks tutorial --tree
+
+测试
+让我们用指定的日期来测试这个任务实例，在上下文中使用execution_date去指定一个日期，用它去模拟调度器在这个日期+时间去执行你的任务或DAG的情况。
+
+# command layout: command subcommand dag_id task_id date
+#命令格式：命令 子命令 dag_id task_id date
+
+# testing print_date
+airflow test tutorial print_date 2015-06-01
+
+# testing sleep
+airflow test tutorial sleep 2015-06-01
+
+
+
+
+
+
+
+
+
 
 
 
