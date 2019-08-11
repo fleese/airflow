@@ -8,6 +8,11 @@ Airflow 是一个程序化编写、调度和监控工作流的平台。
 优雅：airflow的pipeline是精益而明确的，使用功能强大的Jinja模板引擎将参数化脚本内置于Airflow的核心。
 可扩展：Airflow具有模块化体系结构，并使用消息队列来协调任意数量的工作者。airflow已准备好了无限扩展。
 
+多说一点
+Airflow不是一个数据流的解决方案，任务不能将数据从数据从一个地方转移到另外一个地方（尽管任务能交换元数据）。airflow不同于spark stream和storm，它
+更像是Oozie或Azkaban。
+
+airflow建议不要随意改动workflow，你可以认为workflow中的task结构仅比数据库结构稍微动态一些。airflow希望workflow中各个节点的运行是相似性，这样可以清晰的划分work单元和节点之间的运行顺序。
 
 
 
