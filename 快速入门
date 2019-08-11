@@ -1,0 +1,33 @@
+快速入门
+
+安装是简单快速的
+# airflow needs a home, ~/airflow is the default,
+# but you can lay foundation somewhere else if you prefer
+# (optional)
+#配置文件安装目录，默认是～/airflow（可选）
+export AIRFLOW_HOME=~/airflow  
+
+# install from pypi using pip
+#使用pip初始化
+pip install apache-airflow
+
+# initialize the database
+#初始化数据库
+airflow initdb
+
+# start the web server, default port is 8080
+#启动web服务器，模型端口号8080
+airflow webserver -p 8080
+
+# start the scheduler
+#启动调度器
+airflow scheduler
+
+# visit localhost:8080 in the browser and enable the example dag in the home page
+#在浏览器输入localhost:8080验证配置成功
+
+运行上面的命令，airflow将创建一个$AIRFLOW_HOME目录，这个目录中包含一个默认参数配置的airflow.cfg文件。你可以直接打开$AIRFLOW_HOME/airflow.cfg
+文件或者通过web UI上的Admin->Configuration菜单来查看默认的参数配置。如果服务是Linux的systmd启动的话，那么这个webserver的PID文件将放置在
+$AIRFLOW_HOME/airflow-webserver.pid 或 /run/airflow/webserver.pid目录中。
+
+开箱即用的airflow使用了sqlite数据库，由于使用该数据库无法并行化，所以它很快就不能满足你的需求。
