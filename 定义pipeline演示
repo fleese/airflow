@@ -1,0 +1,109 @@
+示例管道定义
+以下是基本管道定义的示例。如果这看起来很复杂，请不要担心，下面将逐行说明。
+
+"""
+Code that goes along with the Airflow tutorial located at:
+https://github.com/apache/airflow/blob/master/airflow/example_dags/tutorial.py
+"""
+from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
+from datetime import datetime, timedelta
+
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2015, 6, 1),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+    # 'queue': 'bash_queue',
+    # 'pool': 'backfill',
+    # 'priority_weight': 10,
+    # 'end_date': datetime(2016, 1, 1),
+}
+
+dag = DAG('tutorial', default_args=default_args, schedule_interval=timedelta(days=1))
+
+# t1, t2 and t3 are examples of tasks created by instantiating operators
+t1 = BashOperator(
+    task_id='print_date',
+    bash_command='date',
+    dag=dag)
+
+t2 = BashOperator(
+    task_id='sleep',
+    bash_command='sleep 5',
+    retries=3,
+    dag=dag)
+
+templated_command = """
+    {% for i in range(5) %}
+        echo "{{ ds }}"
+        echo "{{ macros.ds_add(ds, 7)}}"
+        echo "{{ params.my_param }}"
+    {% endfor %}
+"""
+
+t3 = BashOperator(
+    task_id='templated',
+    bash_command=templated_command,
+    params={'my_param': 'Parameter I passed in'},
+    dag=dag)
+
+t2.set_upstream(t1)
+t3.set_upstream(t1)
+
+
+这是一个DAG定义文件
+可能让人难以理解，airflow设置DAG结构的python脚本仅仅是一个配置文件。任务将实际运行在这里定义的不同上下文中。
+不同的任务在不同的时间点上运行不同的worker上，这意味着此脚本不能用于在任务之间进行交叉通信。请注意，为此，我们有一个更高级的功能XCom。
+
+人们有时会将DAG定义文件视为可以进行实际数据处理的地方 - 事实并非如此！该脚本的目的是定义DAG对象。
+它需要快速执行（花费的时间是秒，而不是分钟），因为scheduler将定期执行它去检测DAG的改变（如果有的话）。
+
+导入模块
+airflow的pipeline仅仅是用python脚本定义的DAG对象。导入我们需要的包。
+
+# The DAG object; we'll need this to instantiate a DAG
+# DAG对象，需要使用这个包去初始化一个DAG实例
+from airflow import DAG
+
+# Operators; we need this to operate!
+# 运算器；需要运算器去执行操作
+from airflow.operators.bash_operator import BashOperator
+
+默认参数
+
+我们将创建一个DAG和一些任务，我们可以选择将一组参数显式传递给每个任务的构造函数（这将变得多余），
+或者（更好）我们可以定义一个默认参数的字典。
+
+from datetime import datetime, timedelta
+
+default_args = {
+    'owner': 'airflow',
+    'depends_on_past': False,
+    'start_date': datetime(2015, 6, 1),
+    'email': ['airflow@example.com'],
+    'email_on_failure': False,
+    'email_on_retry': False,
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+    # 'queue': 'bash_queue',
+    # 'pool': 'backfill',
+    # 'priority_weight': 10,
+    # 'end_date': datetime(2016, 1, 1),
+}
+
+有关BaseOperator参数及其功能的更多信息，请参阅airflow.models.BaseOperator文档。
+另外，请注意，您可以轻松定义可用于不同目的的不同参数集。比如在生产和开发环境之间进行不同的设置。
+
+初始化DAG
+
+
+
+
+
+
