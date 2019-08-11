@@ -1,0 +1,33 @@
+第一次运行airflow时，将在$AIRFLOW_HOME目录（默认是～/airflow）建立一个airflow.cfg的配置文件，你可以修改文件中的任何配置。
+你也可以用$AIRFLOW__{SECTION}__{KEY}（注意是双下划线）形式的环境变量去设置配置文件中的选项。
+
+比如，元数据的数据库连接字符串可以在airflow.cfg文件中像这样设置：
+[core]
+sql_alchemy_conn = my_conn_string
+
+或者通过创建相应的环境变量：
+AIRFLOW__CORE__SQL_ALCHEMY_CONN=my_conn_string
+
+你也可以通过将_cmd附加到配置的关键字后，使airflow在运行时去获取连接字符串。
+[core]
+#执行bash_command_to_run中的命令去生成连接字符串
+sql_alchemy_conn_cmd = bash_command_to_run
+
+以下配置选项支持此_cmd版本：
+sql_alchemy_conn在[core]部分
+fernet_key在[core]部分
+broker_url在[celery]部分
+result_backend在[celery]部分
+password在[atlas]部分
+smtp_password在[smtp]部分
+bind_password在[ldap]部分
+git_password在[kubernetes]部分
+
+这背后的想法是不将密码存储在纯文本文件中
+所有配置选项的通用优先顺序如下：
+1.设置为环境变量
+2.设置在airflow.cfg文件中
+3.在airflow.cfg命令中设置
+4.在airflow中作为默认设置
+
+
