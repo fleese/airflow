@@ -296,6 +296,32 @@ airflow test tutorial print_date 2015-06-01
 # testing sleep
 airflow test tutorial sleep 2015-06-01
 
+现在还记得我们之前用模板做过的事吗？通过运行此命令，了解模板如何呈现和执行：
+这应该显示详细的事件日志并最终运行bash命令并打印结果。
+
+请注意，该命令在本地运行任务实例，将其日志输出到stdout（屏幕）。不依赖于依赖项，并且不向数据库传达状态（运行，成功，失败，...）。它只允许测试单个任务实例。
+
+追数（backfill）
+上面都运行良好，那么让我们来执行一下追数。backfill遵循你的依赖，并将日志发送到文件并与数据库通信以记录状态。如果开启了webserver，您将能够跟踪进度。
+如果你对追数过程感兴趣，想可视化的跟踪它的执行进度，可以使用airflow webserver命令去开启一个web server。
+
+注意，如果你设置depends_on_past=True，则单个追数任务实例将依赖于前面任务实例的成功执行。除非该任务实例自己指定了start_date，此时依赖该依赖关系将被忽略。
+
+
+使用一个start_date和一个可选的end_date指定时间范围，并和DAG的任务实例一起构造一个运行计划。
+
+# optional, start a web server in debug mode in the background
+# 可选的，使用debug模式在后端开启一个web server
+# airflow webserver --debug &
+
+# start your backfill on a date range
+#开始追一个时间范围内的数据
+airflow backfill tutorial -s 2015-06-01 -e 2015-06-07
+
+
+
+
+
 
 
 
