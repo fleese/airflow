@@ -1,0 +1,78 @@
+预备
+
+为了使用钉钉Operators你需要预先做如下工作
+1.添加一个定义机器人到你想发送信息的钉钉的群组中
+2.获取自定义机器人的webhook中的token
+3.设置"dingding_default"连接对象中的password 字段为钉钉自定义机器人的webhook中的token
+
+基本使用
+使用DingdingOperator 去发送钉钉消息
+text_msg_remind_none = DingdingOperator(
+    task_id='text_msg_remind_none',
+    dingding_conn_id='dingding_default',
+    message_type='text',
+    message='Airflow dingding text message remind none',
+    at_mobiles=None,
+    at_all=False,
+    dag=dag,
+)
+
+提醒指定的用户
+当发送消息时，使用at_mobiles 和 at_all去提醒指定的用户接收消息。当at_all设置为True时at_mobiles将被忽略。
+text_msg_remind_all = DingdingOperator(
+    task_id='text_msg_remind_all',
+    dingding_conn_id='dingding_default',
+    message_type='text',
+    message='Airflow dingding text message remind all users in group',
+    # list of user phone/email here in the group
+    # when at_all is specific will cover at_mobiles
+    at_mobiles=['156XXXXXXXX', '130XXXXXXXX'],
+    at_all=True,
+    dag=dag,
+)
+
+发送富文本信息
+钉钉 operator能发送链接，markdown, actionCard 和 feedCard等富文本信息，除了markdown，发送其他类型的富文本信息时都不能用at_mobiles和at_all去提醒特定的人。
+
+markdown_msg = DingdingOperator(
+    task_id='markdown_msg',
+    dingding_conn_id='dingding_default',
+    message_type='markdown',
+    message={
+        'title': 'Airflow dingding markdown message',
+        'text': '# Markdown message title\n'
+                'content content .. \n'
+                '### sub-title\n'
+                '![logo](http://airflow.apache.org/_images/pin_large.png)'
+    },
+    at_mobiles=['156XXXXXXXX'],
+    at_all=False,
+    dag=dag,
+)
+
+在任务回调中使用钉钉operator
+
+通过编写一个函数去封装钉钉operator，然后将该函数传递给sla_miss_callback, on_success_callback, on_failure_callback, 或 on_retry_callback
+下面是使用on_failure_callback的例子：
+
+def failure_callback(context):
+    message = 'AIRFLOW TASK FAILURE TIPS:\n' \
+              'DAG:    {}\n' \
+              'TASKS:  {}\n' \
+              'Reason: {}\n' \
+        .format(context['task_instance'].dag_id,
+                context['task_instance'].task_id,
+                context['exception'])
+    return DingdingOperator(
+        task_id='dingding_success_callback',
+        dingding_conn_id='dingding_default',
+        message_type='text',
+        message=message,
+        at_all=True,
+    ).execute(context)
+
+args['on_failure_callback'] = failure_callback #传递给on_failure_callback
+
+需要的话去修改连接的域名
+钉钉 operator使用模型域名https://oapi.dingtalk.com去发送http请求。根据需要去修改连接对象中的host字段去使用自定义域名。
+
