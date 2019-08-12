@@ -1,0 +1,37 @@
+一个operator代表一个独立，等幂（理想情况）的任务，它确定了DAG在运行时执行的具体内容。
+
+查阅operator的概念介绍文档和API文档以获取更多的信息。
+
+BashOperator
+使用BashOperator去执行Bash命令。
+run_this = BashOperator(
+    task_id='run_after_loop',
+    bash_command='echo 1',
+    dag=dag,
+)
+
+（模板）Templating
+你可以使用 Jinja templates 对bash_command参数的值进行参数化
+also_run_this = BashOperator(
+    task_id='also_run_this',
+    bash_command='echo "run_id={{ run_id }} | dag_run={{ dag_run }}"',  #参数化bash_command参数的取值
+    dag=dag,
+)
+
+疑难解答
+Jinja templates没有找到 
+当为bash_command设置的值为Bash脚本文件时，需要在文件名后加入空格。不加入空格，Airflow 会使用Jinja templates去解析参数值，导致失败。
+
+t2 = BashOperator(
+    task_id='bash_example',
+
+    # This fails with `Jinja template not found` error
+    # 将导致`Jinja template not found` 错误
+    # bash_command="/home/batcher/test.sh",
+
+    # This works (has a space after)
+    # 成功（值后加入空格）
+    bash_command="/home/batcher/test.sh ",
+    dag=dag)
+
+
