@@ -1,0 +1,23 @@
+默认情况下，Airflow将在元数据数据库中以纯文本格式保存连接的密码。强烈推荐安装crypto包，该包安装之前需要安装libffi-dev。
+如果初始未安装crypto时，配置文件airflow.cfg中的Fernet key是空的。
+
+通过如下步骤去加密你连接中的密码：
+1.初始化crypto包：pip install 'apache-airflow[crypto]'
+2.使用下面的代码片段生成fernet_key。fernet_key必须是base64编码的32字节密钥：
+from cryptography.fernet import Fernet
+fernet_key= Fernet.generate_key()
+print(fernet_key.decode()) # your fernet_key, keep it in secured place!
+
+3.将airflow.cfg中的fernet_key值替换为步骤2中的值。另外你可以在系统的环境变量中设置fernet_key-这将覆盖你airflow.cfg中的设置。
+# Note the double underscores
+export AIRFLOW__CORE__FERNET_KEY=your_fernet_key
+
+4.重启webserver
+5.对于现有连接（在安装airflow[crypto]和创建Fernet密钥之前已定义的连接），您需要在连接管理UI中打开每个连接，重新键入密码并保存更改。
+
+置换加密密钥
+使用fernet密钥加密连接凭据和变量后，更改密钥将导致现有凭据的解密失败。要在不使现有加密值无效的情况下置换fernet密钥，请将新密钥添加到fernet_key设置的
+前面，运行airflow rotate_fernet_key，从fernet_key设置中删除老的fernet密钥：
+1.设置fernet_key为new_fernet_key,old_fernet_key的格式（新老fernet密钥用逗号分割）
+2.运行airflow rotate_fernet_key以使用新的fernet密钥重新加密现有凭据
+3.设置fernet_key为new_fernet_key
