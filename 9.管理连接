@@ -22,7 +22,7 @@ Airflow中pipline可以用环境变量去创建一个连接，环境变量的关
 应该为AIRFLOW_CONN_POSTGRES_MASTER（注意环境变量名必须全大写）。
 
 Airflow假定环境变量返回的值是URL格式的（比如``postgres://user:password@localhost:5432/master`` 或者 s3://accesskey:secretkey@S3）
-URI的scheme部分不允许使用下划线字符，你必须将下划线变为连字符（比如 google_compute_platform变更为google-compute-platform ） 
+URI连接字符串的scheme部分不允许使用下划线字符，你必须将下划线变为连字符（比如 google_compute_platform变更为google-compute-platform ） 
 查询参数被解析成一维字典，然后用于额外的可选参数（比如编码参数charset，ssl参数等）的填充，例如：
 mysql://mysql_user:XXXXXXXXXXXX@1.1.1.1:3306/mysqldb?ssl=%7B%22cert%22%3A+%22%2Ftmp%2Fclient-cert.pem%22%2C+%22ca%22%3A+%22%2Ftmp%2Fserver-ca.pem%22%2C+%22key%22%3A+%22%2Ftmp%2Fclient-key.pem%22%7D
 
