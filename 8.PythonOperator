@@ -1,0 +1,38 @@
+使用PythonOperator去执行python调用
+
+def print_context(ds, **kwargs):
+    pprint(kwargs)
+    print(ds)
+    return 'Whatever you return gets printed in the logs'
+
+
+run_this = PythonOperator(
+    task_id='print_the_context',
+    provide_context=True,
+    python_callable=print_context, #调用python方法
+    dag=dag,
+)
+
+传递参数
+使用op_args 和 op_kwargs去传递额外的参数给python调用
+def my_sleeping_function(random_base):
+    """This is a function that will run within the DAG execution"""
+    time.sleep(random_base)
+
+
+# Generate 5 sleeping tasks, sleeping from 0.0 to 0.4 seconds respectively
+# 生成5个沉睡任务，每个独立沉睡0到0.4秒
+for i in range(5):
+    task = PythonOperator(
+        task_id='sleep_for_' + str(i),
+        python_callable=my_sleeping_function,
+        op_kwargs={'random_base': float(i) / 10},
+        dag=dag,
+    )
+
+    run_this >> task
+
+模板
+当设置provide_context 的值为True时，Airflow 会传入一组额外的关键字参数：包含了每个Jinja 模板变量和一个templates_dict参数。
+
+templates_dict参数是模板化的，在字典中的每个值被当做一个Jinja 模板。
