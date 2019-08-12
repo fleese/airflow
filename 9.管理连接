@@ -1,0 +1,37 @@
+UI上的 Admin->Connections 选项 可以设置Airflow登录到其他系统或者服务时所需要的主机名，端口，用户名和密码等信息。
+编写的pipeline代码中需要引用UI上连接实例的‘conn_id’字段值。
+
+连接对象可以通过UI或者环境变量来修改和管理。
+
+
+用UI创建一个连接
+打开UI上的Admin->Connections选项，点击Create链接去新建一个连接。
+1.用下划线分隔的小写字符去设置你的连接ID
+2.在Conn Type字段选择连接类型
+3.填写余下的字段，关于不同连接类型的各个字段的描述请查阅Connection Types（https://airflow.apache.org/howto/connection/index.html#manage-connections-connection-types）
+4.点击Save按钮去保存
+
+用UI编辑一个连接
+
+打开UI上的Admin->Connections选项，在连接对象列表中点击你想修改的连接对象的铅笔图标。
+修改连接对象属性，然后点击Save按钮去保存。
+
+用环境变量去创建一个连接
+Airflow中pipline可以用环境变量去创建一个连接，环境变量的关键字需要以AIRFLOW_CONN_作为前缀，值是URI格式的。
+在Airflow的pipline中引用连接时，这conn_id 字段应该设置为不带AIRFLOW_CONN_前缀的环境变量名。比如，这conn_id设置为postgres_master ，那么这环境变量名
+应该为AIRFLOW_CONN_POSTGRES_MASTER（注意环境变量名必须全大写）。
+
+Airflow假定环境变量返回的值是URL格式的（比如``postgres://user:password@localhost:5432/master`` 或者 s3://accesskey:secretkey@S3）
+URI的scheme部分不允许使用下划线字符，你必须将下划线变为连字符（比如 google_compute_platform变更为google-compute-platform ） 
+查询参数被解析成一维字典，然后用于额外的可选参数（比如编码参数charset，ssl参数等）的填充，例如：
+mysql://mysql_user:XXXXXXXXXXXX@1.1.1.1:3306/mysqldb?ssl=%7B%22cert%22%3A+%22%2Ftmp%2Fclient-cert.pem%22%2C+%22ca%22%3A+%22%2Ftmp%2Fserver-ca.pem%22%2C+%22key%22%3A+%22%2Ftmp%2Fclient-key.pem%22%7D
+
+
+
+
+
+
+
+
+
+
