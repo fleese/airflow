@@ -1,0 +1,12 @@
+Airflow可以集成到系统的systmd中。由于systmd可以负责重启失败的守护进程，这使得你监控自己的守护进程变得简单。
+
+在scripts/systemd目录(github上)中，您可以找到已在Redhat系统上测试过的单元文件。将这些单元文件复制到系统的/usr/lib/systemd/system目录下就可以实现他们的功能。
+
+创建这些单元文件时做了如下假定：
+1.airflow用airflow:airflow（user:group）账号去运行。
+2.airflow运行在redhat系统上
+
+如果不满足上述条件的话，你需要做一些修改。
+请注意，环境配置是从/etc/sysconfig/airflow中获取的（scripts/systemd目录中的文件中的默认配置）。
+
+在scripts/systemd目录中提供了一个示例文件，你也可以在AIRFLOW_HOME 或者 AIRFLOW_CONFIG目录下定义配置。
