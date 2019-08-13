@@ -1,3 +1,4 @@
+本地日志
 用配置文件airflow.cfg的base_log_folder去指定日志文件的存放位置。默认，日志是存放在$AIRFLOW_HOME目录。
 airflow日志文件的命名遵循如下的格式：
 {dag_id}/{task_id}/{execution_date}/{try_number}.log
