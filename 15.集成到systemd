@@ -7,6 +7,9 @@ Airflow可以集成到系统的systmd中。由于systmd可以负责重启失败�
 2.airflow运行在redhat系统上
 
 如果不满足上述条件的话，你需要做一些修改。
-请注意，环境配置是从/etc/sysconfig/airflow中获取的（scripts/systemd目录中的文件中的默认配置）。
+请注意，环境配置默认是从/etc/sysconfig/airflow目录下获取的（scripts/systemd目录中的文件中的默认配置）。
 
-在scripts/systemd目录中提供了一个示例文件，你也可以在AIRFLOW_HOME 或者 AIRFLOW_CONFIG目录下定义配置。
+在scripts/systemd目录中提供了一个示例环境配置文件“airflow“（该文件需要拷贝到/etc/sysconfig/airflow目录下），
+在”airflow“配置文件中你可以设置AIRFLOW_HOME 或者 AIRFLOW_CONFIG的值
+具体使用请参考github下的scripts/systemd目录：https://github.com/apache/airflow/blob/master/scripts/systemd/airflow
+
