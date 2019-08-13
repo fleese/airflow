@@ -1,0 +1,49 @@
+用配置文件airflow.cfg的base_log_folder去指定日志文件的存放位置。默认，日志是存放在$AIRFLOW_HOME目录。
+airflow日志文件的命名遵循如下的格式：
+{dag_id}/{task_id}/{execution_date}/{try_number}.log
+
+此外，用户可以提供一个远程位置来存储当前日志和备份。
+在airflow的Web UI中，本地日志优先于远程日志。如果无法找到或访问本地日志，则将显示远程日志。
+注意，日志只在任务完成(包括失败)后发送到远程存储;换句话说，对于正在运行的任务，其远程日志是不可用的。
+
+准备工作：
+远程日志功能需要一个已经设置好的airflow连接对象。如果你没有正确设置连接对象，读写远程日志将失败。
+
+写日志到Elasticsearch
+airflow可以从Elasticsearch 读取任务日志。并且airflow可以将日志以标准格式或json格式写入到标准输出（stdout），这些日志稍后可以使用fluentd、logstash或其他工具收集并转发到Elasticsearch集群。
+
+你也可以选择将所有worker的任务日志输出到到最高父级进程，而不是本地的文件目录。这将允许在容器环境(如Kubernetes)中提供一些额外的灵活性，
+其中容器的标准输出（stdout）位置已经被记录到主机的每个节点中。然后可以使用日志传送工具将它们转发到Elasticsearch。
+设置airflow.cfg文件中的write_stdout 字段去启用这个功能。通过设置json_format 选项可以让日志以json格式进行输出。
+airflow使用标准的Python日志模块，JSON字段直接从LogRecord对象中提取。为了能使用这个功能，请设置airflow.cfg的json_fields选项。
+将日志中需要收集的字段用逗号分隔，并拼接成字符串。这些所包含的字段来自于logging 模块的LogRecord 对象。
+LogRecord 对象的各个属性描述可以参阅：https://docs.python.org/3/library/logging.html#logrecord-attributes
+
+使用Elasticsearch读写日志，所有需要配置 airflow.cfg：
+[core]
+# Airflow can store logs remotely in AWS S3, Google Cloud Storage or Elastic Search.
+# Users must supply an Airflow connection id that provides access to the storage
+# location. If remote_logging is set to true, see UPDATING.md for additional
+# configuration requirements.
+remote_logging = True
+
+[elasticsearch]
+log_id_template = {{dag_id}}-{{task_id}}-{{execution_date}}-{{try_number}}
+end_of_log_mark = end_of_log
+write_stdout =
+json_fields =
+
+如果使用json格式去输出日志，需要如下配置：
+[core]
+# Airflow can store logs remotely in AWS S3, Google Cloud Storage or Elastic Search.
+# Users must supply an Airflow connection id that provides access to the storage
+# location. If remote_logging is set to true, see UPDATING.md for additional
+# configuration requirements.
+remote_logging = True
+
+[elasticsearch]
+log_id_template = {{dag_id}}-{{task_id}}-{{execution_date}}-{{try_number}}
+end_of_log_mark = end_of_log
+write_stdout = True
+json_format = True
+json_fields = asctime, filename, lineno, levelname, message
