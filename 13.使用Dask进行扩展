@@ -1,0 +1,19 @@
+airflow.executors.dask_executor.DaskExecutor在Dask分布式集群上运行Airflow 任务。
+
+Dask集群可以能运行在单机上或者远端网络上。详情请参阅：https://distributed.readthedocs.io/en/latest/
+
+开始创建Dask集群前，请开启一个调度器：
+# default settings for a local cluster
+DASK_HOST=127.0.0.1
+DASK_PORT=8786
+
+dask-scheduler --host $DASK_HOST --port $DASK_PORT
+
+接下来，在任何可以连接到Dask的机器上启动至少一个Worker
+dask-worker $DASK_HOST:$DASK_PORT
+
+编辑airflow.cfg，设置executor 为 airflow.executors.dask_executor.DaskExecutor，并在设置[dask] 选项的值为Dask调度器的地址。
+
+注意：
+Dask worker必须能够导入airflow和其他任何需要的依赖包。
+Dask 不支持队列，如果使用队列创建了一个airflow任务，则会发出警告，但该任务还是会提交给Dask集群。 
