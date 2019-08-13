@@ -1,0 +1,28 @@
+CeleryExecutor 是一种扩展你的worker数量的方法。要实现这一点，您需要配置一个Celery后端(RabbitMQ、Redis.....)，
+并更改您的airflow.cfg，将executor参数指向CeleryExecutor，并提供相关Celery设置。
+
+有关设置Celery代理的更多信息，请参阅Celery的详细文档：http://docs.celeryproject.org/en/latest/getting-started/brokers/index.html
+
+为了使用Celery，你的worker需要做一些必要的工作：
+1.需要安装airflow，CLI需要在路径上
+2.airflow的配置应该分发到集群的每一个机器上
+3.在worker 上执行的operator需要满足自身对环境的依赖。比如，你使用HiveOperator， 这hive CLI需要安装，
+使用MySqlOperator，其需要的Python包在PYTHONPATH 路径下是可用的。
+4.worker需要去访问DAGS_FOLDER（DAG目录），你需要靠自己的方式去同步这个文件系统。一种常用的设置是将DAGS_FOLDER 存放在git仓库，
+然后使用Chef, Puppet, Ansible或在你环境中配置机器的工具去跨机器同步。如果所有的机器都有一个公共的挂载点，那么在那里共享管道文件也应该是可行的。
+
+要启动一个worker，需要设置aiflow并执行启动woker子命令
+一旦启动，你的worke就会开始接受任务。
+
+注意，你可以使用airflow flower命令启动一个Flower的web服务器，然后你可以在web UI的Celery中去执行Celery Flower去监控你的woker.
+使用flower需要安装flower的python 包，推荐如下方式安装celery 全家桶：
+pip install 'apache-airflow[celery]'
+
+一些提醒：
+1.确保使用一个支持结果后端的数据库（结果后端：用于任务结果存储的后端 ）
+2.确保在[celery_broker_transport_options]中设置一个超时时间，该超时时间要大于最长任务的执行时间。
+3.任务需要花费资源，确保你的worker有足够的资源去运行worker_concurrency 任务。
+4.虽然队列名是被限制为256个字符，但是每个代理后端可能有他们自己的限制。
+
+
+
