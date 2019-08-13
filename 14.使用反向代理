@@ -1,0 +1,48 @@
+可以为airflow设置反向代理，以增加airflow部署的灵活性。
+比如，你可以设置反向代理为：
+https://lab.mycompany.com/myorg/airflow/
+
+配置代理前，你需要在airflow.cfg中做如下设置：
+base_url = http://my_host/myorg/airflow  #myhost自己的主机名
+
+另外，如果你使用Celery Executor，当你做如下配置时，你可以访问 /myorg/flower下的Flower：
+flower_url_prefix = /myorg/flower
+
+你的反向代理可以如下配置（例如nginx）：
+不用改写，直接转递url和http头给Airflow web服务器，如下：
+server {
+  listen 80;
+  server_name lab.mycompany.com;
+
+  location /myorg/airflow/ {
+      proxy_pass http://localhost:8080;
+      proxy_set_header Host $host;
+      proxy_redirect off;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+  }
+}
+
+
+反向代理flower时，需要改写url：
+server {
+    listen 80;
+    server_name lab.mycompany.com;
+
+    location /myorg/flower/ {
+        rewrite ^/myorg/flower/(.*)$ /$1 break;  # remove prefix from http header
+        proxy_pass http://localhost:5555;
+        proxy_set_header Host $host;
+        proxy_redirect off;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+为了确保使用SSL/TLS代理协议时airflow能用正确的方式生成URLs。你需要在代理中设置X-Forwarded-Proto头，并在airflow.cfg中启用ProxyFix中间间。
+enable_proxy_fix = True
+
+注意：
+您应该只在可信代理（AWS ELB，nginx等）后面运行Airflow时才启用ProxyFix中间件。
