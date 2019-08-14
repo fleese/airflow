@@ -1,0 +1,6 @@
+airflow有一组固定的“test mode”配置选项。你可以随时调用airflow.configuration.load_test_config()去加载这些配置。但是该操作是不可逆的。
+比如，DAG_FOLDER应该在你调用load_test_config()前被加载。为了更为快熟的加载test配置，你可以在airflow.cfg中配置test_mode：
+[tests]
+unit_test_mode = True
+
+由于airflow的自动环境变量扩展功能，你可以设置临时的AIRFLOW__CORE__UNIT_TEST_MODE（参阅https://airflow.apache.org/howto/set-config.html）去覆盖掉airflow.cfg中的unit_test_mode配置。
