@@ -1,0 +1,17 @@
+通过简单的访问/health,你就可以去查看Airflow实例的健康状态。访问/health，它将返回一个高度概括的健康状态报告。
+{
+  "metadatabase":{
+    "status":"healthy"
+  },
+  "scheduler":{
+    "status":"healthy",
+    "latest_scheduler_heartbeat":"2018-12-26 17:15:11+00:00"
+  }
+}
+
+每个部分被标识为‘healthy’或者‘unhealthy’
+
+1.元数据库的健康状态取决于是否可以和数据库建立一个有效的连接
+2.scheduler的状态取决于最后一次接收到的scheduler心跳的时间
+  2.1  
+
