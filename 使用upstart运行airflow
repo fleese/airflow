@@ -1,0 +1,14 @@
+airflow可以和linux系统的upstart进行集成。
+如果在/etc/init目录下有相应的*.conf文件，Upstart在系统启动时就可以自动开启你所有的airflow服务。服务崩溃时，Upstart会自动重启你的进程（除非它达到了*.conf的re-spawn限制）。
+
+在scripts/upstart（github上）目录下找到upstart job的样例文件
+在创建这些单元文件时做了如下假定：
+
+1.airflow将用airflow:airflow（user:group）账户运行-如果需要使用其他group或者user运行，请修改*.conf文件的setuid和setgid。
+2.这些文件已经在Ubuntu 14.04 LTS进行了测试(你可能需要去修改.conf文件中start on 和stop on的值以适配其他系统的upstart，对于可能的start on已经列在了scripts/upstart/README中)
+
+修改需要和upstart集成的服务的.conf文件然后拷贝到系统的/etc/init目录
+
+你可以使用initctl去手动启动、停止、查看集成到upstart的airflow服务。
+initctl airflow-webserver status
+
